@@ -1,4 +1,5 @@
 ﻿using Library.Backend.Data;
+using Library.Backend.DTOs.Book;
 using Library.Backend.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -29,4 +30,31 @@ public class BookService
         await _context.SaveChangesAsync();
         return book;
     }
+
+    public async Task<Book?> UpdateBook(int id, UpdateBookDto updateBookDto)
+    {
+        var book = await _context.Books.FindAsync(id);
+        
+        if (book == null) return null;
+        
+        if (updateBookDto.Title != null)
+        {
+            book.Title = updateBookDto.Title;
+        }
+
+        if (updateBookDto.Author != null)
+        {
+            book.Author = updateBookDto.Author;
+        }
+
+        if (updateBookDto.PublishDate.HasValue)
+        {
+            book.PublishDate = updateBookDto.PublishDate;
+        }
+
+        await _context.SaveChangesAsync();
+
+        return book;
+    }
+    
 }

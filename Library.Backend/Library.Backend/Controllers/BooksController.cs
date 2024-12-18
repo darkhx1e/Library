@@ -45,4 +45,17 @@ public class BooksController : ControllerBase
         await _bookService.CreateBook(book);
         return CreatedAtAction(nameof(GetBookById), new { id = book.Id }, book);
     }
+
+    [HttpPatch("{id}")]
+    public async Task<ActionResult<Book>> UpdateBook(int id, UpdateBookDto updateBookDto)
+    {
+        var updatedBook = await _bookService.UpdateBook(id, updateBookDto);
+
+        if (updatedBook == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(updatedBook);
+    }
 }
