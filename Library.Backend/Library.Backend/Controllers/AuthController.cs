@@ -1,0 +1,42 @@
+﻿using Library.Backend.DTOs.User;
+using Library.Backend.Services;
+using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Library.Backend.Controllers;
+
+public class AuthController : Controller
+{
+    private readonly AuthService _authService;
+
+    public AuthController(AuthService authService)
+    {
+        _authService = authService;
+    }
+
+    [HttpPost("register")]
+    public async Task<IActionResult> Register(RegisterUserDto registerUserDto)
+    {
+        var result = await _authService.RegisterUser(registerUserDto);
+        if (!result.Succeeded)
+        {
+            return BadRequest(result.Errors);
+        }
+
+        return Ok("User registered successfully");
+    }
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login(string email, string password)
+    {
+        try
+        {
+            var token = await _authService.LoginUser(email, password);
+            return Ok(new { Token = token });
+        }
+        catch (Exception ex)
+        {
+            return Unauthorized(ex.Message);
+        }
+    }
+}
