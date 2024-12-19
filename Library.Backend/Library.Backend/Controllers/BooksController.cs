@@ -1,12 +1,14 @@
 ﻿using Library.Backend.DTOs.Book;
 using Library.Backend.Models;
 using Library.Backend.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Library.Backend.Controllers;
 
 [Route("[controller]")]
 [ApiController]
+[Authorize]
 public class BooksController : ControllerBase
 {
     private readonly BookService _bookService;
@@ -17,7 +19,7 @@ public class BooksController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Book>>> GetAllBooks()    
+    public async Task<ActionResult<IEnumerable<Book>>> GetAllBooks()
     {
         return Ok(await _bookService.GetAllBooks());
     }

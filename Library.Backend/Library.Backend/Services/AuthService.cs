@@ -11,14 +11,12 @@ namespace Library.Backend.Services;
 public class AuthService
 {
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IConfiguration _configuration;
 
     public AuthService(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager,
         IConfiguration configuration)
     {
         _userManager = userManager;
-        _signInManager = signInManager;
         _configuration = configuration;
     }
 
@@ -36,7 +34,7 @@ public class AuthService
         return result;
     }
 
-    public async Task<string> LoginUser(string email, string password)
+    public async Task<string?> LoginUser(string email, string password)
     {
         var user = await _userManager.FindByEmailAsync(email);
         if (user == null)
@@ -44,10 +42,9 @@ public class AuthService
             throw new Exception("User not found.");
         }
 
-        var result = await _signInManager.PasswordSignInAsync(user, password, false, false);
-        if (!result.Succeeded)
+        if (!await _userManager.CheckPasswordAsync(user, password))
         {
-            throw new Exception("Invalid login attempt.");
+            throw new Exception("Invalid password.");
         }
 
         var token = GenerateJwtToken(user);
