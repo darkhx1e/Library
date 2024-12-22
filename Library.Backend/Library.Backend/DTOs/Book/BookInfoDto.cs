@@ -1,17 +1,14 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Library.Backend.DTOs.User;
 
-namespace Library.Backend.Models;
+namespace Library.Backend.DTOs.Book;
 
-public class Book
+public class BookInfoDto
 {
     public int Id { get; set; }
-    [StringLength(100)]
     public required string Title { get; set; }
-    [StringLength(100)]
     public required string Author { get; set; }
     public bool IsAvailable { get; set; }
     public DateTime CreatedDate { get; set; }
     public DateTime? PublishDate { get; set; }
-    public string? TakenByUserId { get; set; }
-    public ApplicationUser? TakenByUser { get; set; }
+    public UserInfoDto? TakenByUser { get; set; }
 }

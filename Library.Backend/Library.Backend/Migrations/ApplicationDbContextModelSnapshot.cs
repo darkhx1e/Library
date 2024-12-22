@@ -116,12 +116,17 @@ namespace Library.Backend.Migrations
                     b.Property<DateTime?>("PublishDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("TakenByUserId")
+                        .HasColumnType("text");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("TakenByUserId");
 
                     b.ToTable("Books");
                 });
@@ -256,6 +261,15 @@ namespace Library.Backend.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("Library.Backend.Models.Book", b =>
+                {
+                    b.HasOne("Library.Backend.Models.ApplicationUser", "TakenByUser")
+                        .WithMany()
+                        .HasForeignKey("TakenByUserId");
+
+                    b.Navigation("TakenByUser");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
