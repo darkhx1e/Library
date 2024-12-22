@@ -22,13 +22,13 @@ public class BooksController : ControllerBase
         _userManager = userManager;
     }
 
-    [HttpGet]
+    [HttpGet("getAllBooks")]
     public async Task<ActionResult<IEnumerable<BookInfoDto>>> GetAllBooks()
     {
         return Ok(await _bookService.GetAllBooks());
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("getBookById/{id}")]
     public async Task<ActionResult<BookInfoDto>> GetBookById(int id)
     {
         var book = await _bookService.GetBookById(id);
@@ -37,7 +37,7 @@ public class BooksController : ControllerBase
         return Ok(book);
     }
 
-    [HttpPost]
+    [HttpPost("addBook")]
     public async Task<ActionResult<Book>> AddBook(CreateBookDto bookDto)
     {
         var book = new Book
@@ -53,7 +53,7 @@ public class BooksController : ControllerBase
         return CreatedAtAction(nameof(GetBookById), new { id = book.Id }, book);
     }
 
-    [HttpPost("multiple")]
+    [HttpPost("addMultipleBooks")]
     public async Task<ActionResult> AddMultipleBooks(List<CreateBookDto>? books)
     {
         if (books == null || !books.Any())
@@ -72,7 +72,7 @@ public class BooksController : ControllerBase
         }
     }
 
-    [HttpPatch("{id}")]
+    [HttpPatch("updateBook/{id}")]
     public async Task<ActionResult<BookInfoDto>> UpdateBook(int id, UpdateBookDto updateBookDto)
     {
         var updatedBook = await _bookService.UpdateBook(id, updateBookDto);
@@ -85,7 +85,7 @@ public class BooksController : ControllerBase
         return Ok(updatedBook);
     }
 
-    [HttpPost("{bookId}/take")]
+    [HttpPost("takeBook/{bookId}")]
     public async Task<ActionResult<bool>> TakeBook(int bookId)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
