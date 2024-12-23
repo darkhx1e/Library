@@ -30,7 +30,7 @@ public class BooksController : ControllerBase
         return Ok(await _bookService.GetAllBooks(bookQueryParameters));
     }
 
-    [HttpGet("getBookById/{id}")]
+    [HttpGet("getBookById")]
     public async Task<ActionResult<BookInfoDto>> GetBookById(int id)
     {
         var book = await _bookService.GetBookById(id);
@@ -94,7 +94,7 @@ public class BooksController : ControllerBase
         return Ok(updatedBook);
     }
 
-    [HttpPost("takeBook/{bookId}")]
+    [HttpPost("takeBook")]
     public async Task<ActionResult<bool>> TakeBook(int bookId)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -115,7 +115,35 @@ public class BooksController : ControllerBase
             await _bookService.TakeBook(bookId, user);
             return Ok("Book successfully taken!");
         }
-        catch (ArgumentException ex)
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+    
+    [HttpPost("returnBook")]
+    public async Task<ActionResult<bool>> ReturnBook(int bookId)
+    {
+        try
+        {
+            await _bookService.ReturnBook(bookId);
+            return Ok("Book successfully returned!");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    [HttpDelete("deleteBook")]
+    public async Task<ActionResult<bool>> DeleteBook(int id)
+    {
+        try
+        {
+            await _bookService.DeleteBook(id);
+            return Ok("Book successfully deleted!");
+        }
+        catch (Exception ex)
         {
             return BadRequest(ex.Message);
         }

@@ -145,17 +145,56 @@ public class BookService
 
         if (book == null)
         {
-            throw new ArgumentException("Book not found.");
+            throw new Exception("Book not found.");
         }
 
         if (!book.IsAvailable)
         {
-            throw new ArgumentException("Book is already taken.");
+            throw new Exception("Book is already taken.");
         }
 
         book.IsAvailable = false;
         book.TakenByUserId = user.Id;
 
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> DeleteBook(int bookId)
+    {
+        var book = await _context.Books.FirstOrDefaultAsync(b => b.Id == bookId);
+        
+        if (book == null)
+        {
+            throw new Exception("Book not found.");
+        }
+        
+        if (!book.IsAvailable)
+        {
+            throw new Exception("Can't delete this book because it is already taken.");
+        }
+        
+        _context.Books.Remove(book);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> ReturnBook(int bookId)
+    {
+        var book = await _context.Books.FirstOrDefaultAsync(b => b.Id == bookId);
+
+        if (book == null)
+        {
+            throw new Exception("Book not found.");
+        }
+
+        if (book.IsAvailable)
+        {
+            throw new Exception("Book is not taken.");
+        }
+        
+        book.IsAvailable = true;
+        book.TakenByUserId = null;
         await _context.SaveChangesAsync();
         return true;
     }
