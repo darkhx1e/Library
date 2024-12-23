@@ -1,4 +1,5 @@
 using System.Text;
+using Library.Backend.Auth;
 using Library.Backend.Data;
 using Library.Backend.Models;
 using Library.Backend.Services;
@@ -82,6 +83,18 @@ builder.Services
                     context.Token = token;
                 }
                 return Task.CompletedTask;
+            },
+            OnForbidden = context =>
+            {
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                context.Response.ContentType = "application/json";
+                
+                var result = System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    error = "Access denied."
+                });
+
+                return context.Response.WriteAsync(result);
             }
         };
     });
@@ -131,6 +144,12 @@ builder.Services.AddAuthorization();
 
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    await RoleInitializer.InitializeRoles(services);
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

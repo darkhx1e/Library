@@ -123,12 +123,12 @@ public class BookService
 
         if (book == null)
         {
-            throw new Exception("Book not found.");
+            throw new ArgumentException("Book not found.");
         }
 
         if (!book.IsAvailable)
         {
-            throw new Exception("Book is already taken.");
+            throw new ArgumentException("Book is already taken.");
         }
         
         book.IsAvailable = false;

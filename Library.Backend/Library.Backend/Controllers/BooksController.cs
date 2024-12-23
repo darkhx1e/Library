@@ -38,7 +38,7 @@ public class BooksController : ControllerBase
     }
 
     [HttpPost("addBook")]
-    public async Task<ActionResult<Book>> AddBook(CreateBookDto bookDto)
+    public async Task<IActionResult> AddBook(CreateBookDto bookDto)
     {
         var book = new Book
         {
@@ -48,9 +48,16 @@ public class BooksController : ControllerBase
             PublishDate = bookDto.PublishedDate,
             IsAvailable = true
         };
-
-        await _bookService.CreateBook(book);
-        return CreatedAtAction(nameof(GetBookById), new { id = book.Id }, book);
+        
+        try
+        {
+            await _bookService.CreateBook(book);
+            return Ok("Book created");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"An error occurred: {ex.Message}");
+        }
     }
 
     [HttpPost("addMultipleBooks")]
@@ -106,7 +113,7 @@ public class BooksController : ControllerBase
             await _bookService.TakeBook(bookId, user);
             return Ok("Book successfully taken!");
         }
-        catch (Exception ex)
+        catch (ArgumentException ex)
         {
             return BadRequest(ex.Message);
         }
