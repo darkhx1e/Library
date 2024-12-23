@@ -2,6 +2,7 @@
 using Library.Backend.DTOs.Book;
 using Library.Backend.DTOs.User;
 using Library.Backend.Models;
+using Library.Backend.Queries;
 using Microsoft.EntityFrameworkCore;
 
 namespace Library.Backend.Services;
@@ -15,27 +16,49 @@ public class BookService
         _context = context;
     }
 
-    public async Task<IEnumerable<BookInfoDto>> GetAllBooks()
+    public async Task<PaginatedList<BookInfoDto>> GetAllBooks(BookQueryParameters bookQueryParameters)
     {
-        var books = await _context.Books
-            .Include(b => b.TakenByUser)
-            .ToListAsync();
-        
-        return books.Select(book => new BookInfoDto
+        var query = _context.Books.AsQueryable();
+
+
+        if (!string.IsNullOrEmpty(bookQueryParameters.Title))
+        {
+            query = query.Where(b => b.Title.ToLower().Contains(bookQueryParameters.Title.ToLower()));
+        }
+
+        if (!string.IsNullOrEmpty(bookQueryParameters.Author))
+        {
+            query = query.Where(b => b.Author.ToLower().Contains(bookQueryParameters.Author.ToLower()));
+        }
+
+        var paginatedBooks = await PaginatedList<Book>
+            .CreateAsync(query.Include(b => b.TakenByUser), bookQueryParameters.Page, bookQueryParameters.PageSize);
+
+
+        var bookDtos = paginatedBooks.Items.Select(book => new BookInfoDto
         {
             Id = book.Id,
             Title = book.Title,
             Author = book.Author,
             CreatedDate = book.CreatedDate,
             PublishDate = book.PublishDate,
-            TakenByUser = book.TakenByUser == null ? null : new UserInfoDto
-            {
-                Id = book.TakenByUser.Id,
-                Email = book.TakenByUser.Email,
-                Name = book.TakenByUser.Name,
-                Surname = book.TakenByUser.Surname,
-            }
-        });
+            TakenByUser = book.TakenByUser == null
+                ? null
+                : new UserInfoDto
+                {
+                    Id = book.TakenByUser.Id,
+                    Email = book.TakenByUser.Email,
+                    Name = book.TakenByUser.Name,
+                    Surname = book.TakenByUser.Surname,
+                }
+        }).ToList();
+        
+        return new PaginatedList<BookInfoDto>(
+            bookDtos,
+            paginatedBooks.PageNumber,
+            bookQueryParameters.PageSize,
+            paginatedBooks.TotalCount
+        );
     }
 
     public async Task<BookInfoDto?> GetBookById(int id)
@@ -63,7 +86,6 @@ public class BookService
                     Name = book.TakenByUser.Name,
                     Surname = book.TakenByUser.Surname,
                 }
-
         };
 
         return bookDto;
@@ -86,7 +108,7 @@ public class BookService
             PublishDate = bookDto.PublishedDate,
             IsAvailable = true
         }).ToList();
-        
+
         _context.Books.AddRange(books);
         await _context.SaveChangesAsync();
     }
@@ -94,9 +116,9 @@ public class BookService
     public async Task<Book?> UpdateBook(int id, UpdateBookDto updateBookDto)
     {
         var book = await _context.Books.FindAsync(id);
-        
+
         if (book == null) return null;
-        
+
         if (updateBookDto.Title != null)
         {
             book.Title = updateBookDto.Title;
@@ -130,12 +152,11 @@ public class BookService
         {
             throw new ArgumentException("Book is already taken.");
         }
-        
+
         book.IsAvailable = false;
         book.TakenByUserId = user.Id;
 
         await _context.SaveChangesAsync();
         return true;
     }
-    
 }

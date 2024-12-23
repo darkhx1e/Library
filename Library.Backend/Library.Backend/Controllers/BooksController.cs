@@ -1,6 +1,8 @@
 ﻿using System.Security.Claims;
+using Library.Backend.Data;
 using Library.Backend.DTOs.Book;
 using Library.Backend.Models;
+using Library.Backend.Queries;
 using Library.Backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -23,9 +25,9 @@ public class BooksController : ControllerBase
     }
 
     [HttpGet("getAllBooks")]
-    public async Task<ActionResult<IEnumerable<BookInfoDto>>> GetAllBooks()
+    public async Task<ActionResult<PaginatedList<BookInfoDto>>> GetAllBooks([FromQuery] BookQueryParameters bookQueryParameters)
     {
-        return Ok(await _bookService.GetAllBooks());
+        return Ok(await _bookService.GetAllBooks(bookQueryParameters));
     }
 
     [HttpGet("getBookById/{id}")]
@@ -38,7 +40,7 @@ public class BooksController : ControllerBase
     }
 
     [HttpPost("addBook")]
-    public async Task<IActionResult> AddBook(CreateBookDto bookDto)
+    public async Task<IActionResult> AddBook([FromBody] CreateBookDto bookDto)
     {
         var book = new Book
         {
