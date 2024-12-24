@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Library.Backend.Controllers;
 
-[Route("[controller]")]
+[Route("books")]
 [ApiController]
 [Authorize]
 public class BooksController : ControllerBase
