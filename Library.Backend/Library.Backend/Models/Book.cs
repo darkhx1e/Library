@@ -14,4 +14,5 @@ public class Book
     public DateTime? PublishDate { get; set; }
     public string? TakenByUserId { get; set; }
     public ApplicationUser? TakenByUser { get; set; }
+    public required ICollection<BookGenre> BookGenres { get; set; }
 }

@@ -1,5 +1,6 @@
 ﻿using Library.Backend.Data;
 using Library.Backend.DTOs.Book;
+using Library.Backend.DTOs.Genre;
 using Library.Backend.DTOs.User;
 using Library.Backend.Models;
 using Library.Backend.Queries;
@@ -20,7 +21,6 @@ public class BookService
     {
         var query = _context.Books.AsQueryable();
 
-
         if (!string.IsNullOrEmpty(bookQueryParameters.Title))
         {
             query = query.Where(b => b.Title.ToLower().Contains(bookQueryParameters.Title.ToLower()));
@@ -30,11 +30,17 @@ public class BookService
         {
             query = query.Where(b => b.Author.ToLower().Contains(bookQueryParameters.Author.ToLower()));
         }
+        
+        if (bookQueryParameters.GenreIds != null && bookQueryParameters.GenreIds.Any())
+        {
+            query = query.Where(b => b.BookGenres.Any(bg => bookQueryParameters.GenreIds.Contains(bg.GenreId)));
+        }
 
         var paginatedBooks = await PaginatedList<Book>
-            .CreateAsync(query.Include(b => b.TakenByUser), bookQueryParameters.Page, bookQueryParameters.PageSize);
-
-
+            .CreateAsync(query.Include(b => b.TakenByUser)
+                .Include(b => b.BookGenres)
+                .ThenInclude(bg => bg.Genre), bookQueryParameters.Page, bookQueryParameters.PageSize);
+        
         var bookDtos = paginatedBooks.Items.Select(book => new BookInfoDto
         {
             Id = book.Id,
@@ -42,6 +48,7 @@ public class BookService
             Author = book.Author,
             CreatedDate = book.CreatedDate,
             PublishDate = book.PublishDate,
+            IsAvailable = book.IsAvailable,
             TakenByUser = book.TakenByUser == null
                 ? null
                 : new UserInfoDto
@@ -50,9 +57,15 @@ public class BookService
                     Email = book.TakenByUser.Email,
                     Name = book.TakenByUser.Name,
                     Surname = book.TakenByUser.Surname,
+                },
+            Genres = book.BookGenres.Select(bg => new GenreInfoDto
+                {
+                    Id = bg.GenreId,
+                    Name = bg.Genre.Name,
                 }
+            ).ToList(),
         }).ToList();
-        
+
         return new PaginatedList<BookInfoDto>(
             bookDtos,
             paginatedBooks.PageNumber,
@@ -65,6 +78,8 @@ public class BookService
     {
         var book = await _context.Books
             .Include(b => b.TakenByUser)
+            .Include(b => b.BookGenres)
+            .ThenInclude(bg => bg.Genre)
             .FirstOrDefaultAsync(b => b.Id == id);
 
         if (book == null) return null;
@@ -85,20 +100,48 @@ public class BookService
                     Email = book.TakenByUser.Email,
                     Name = book.TakenByUser.Name,
                     Surname = book.TakenByUser.Surname,
-                }
+                },
+            Genres = book.BookGenres.Select(bg => new GenreInfoDto
+            {
+                Id = bg.GenreId,
+                Name = bg.Genre.Name,
+            }).ToList()
         };
 
         return bookDto;
     }
 
-    public async Task<Book> CreateBook(Book book)
+    public async Task<Book> CreateBook(CreateBookDto bookDto)
     {
+        var book = new Book
+        {
+            Title = bookDto.Title,
+            Author = bookDto.Author,
+            CreatedDate = DateTime.UtcNow,
+            PublishDate = bookDto.PublishedDate,
+            IsAvailable = true,
+            BookGenres = new List<BookGenre>(),
+        };
+
+        foreach (var genreId in bookDto.GenreIds)
+        {
+            var genre = await _context.Genres.FindAsync(genreId);
+            if (genre != null)
+            {
+                book.BookGenres.Add(new BookGenre
+                {
+                    Book = book,
+                    GenreId = genreId
+                });
+            }
+        }
+
         _context.Books.Add(book);
         await _context.SaveChangesAsync();
         return book;
     }
 
-    public async Task AddMultipleBooks(List<CreateBookDto> createBookDtos)
+    /*public async Task AddMultipleBooks(List<CreateBookDto> createBookDtos)
     {
         var books = createBookDtos.Select(bookDto => new Book
         {
@@ -111,27 +154,33 @@ public class BookService
 
         _context.Books.AddRange(books);
         await _context.SaveChangesAsync();
-    }
+    }*/
 
     public async Task<Book?> UpdateBook(int id, UpdateBookDto updateBookDto)
     {
-        var book = await _context.Books.FindAsync(id);
+        var book = await _context.Books
+            .Include(b => b.BookGenres)
+            .FirstOrDefaultAsync(b => b.Id == id);
 
         if (book == null) return null;
 
-        if (updateBookDto.Title != null)
-        {
-            book.Title = updateBookDto.Title;
-        }
+        book.Title = updateBookDto.Title;
+        book.Author = updateBookDto.Author;
+        book.PublishDate = updateBookDto.PublishDate;
 
-        if (updateBookDto.Author != null)
-        {
-            book.Author = updateBookDto.Author;
-        }
+        _context.BookGenres.RemoveRange(book.BookGenres);
 
-        if (updateBookDto.PublishDate.HasValue)
+        foreach (var genreId in updateBookDto.GenreIds)
         {
-            book.PublishDate = updateBookDto.PublishDate;
+            var genre = await _context.Genres.FindAsync(genreId);
+            if (genre != null)
+            {
+                book.BookGenres.Add(new BookGenre
+                {
+                    Book = book,
+                    GenreId = genreId
+                });
+            }
         }
 
         await _context.SaveChangesAsync();
@@ -163,17 +212,17 @@ public class BookService
     public async Task<bool> DeleteBook(int bookId)
     {
         var book = await _context.Books.FirstOrDefaultAsync(b => b.Id == bookId);
-        
+
         if (book == null)
         {
             throw new Exception("Book not found.");
         }
-        
+
         if (!book.IsAvailable)
         {
             throw new Exception("Can't delete this book because it is already taken.");
         }
-        
+
         _context.Books.Remove(book);
         await _context.SaveChangesAsync();
         return true;
@@ -192,7 +241,7 @@ public class BookService
         {
             throw new Exception("Book is not taken.");
         }
-        
+
         book.IsAvailable = true;
         book.TakenByUserId = null;
         await _context.SaveChangesAsync();

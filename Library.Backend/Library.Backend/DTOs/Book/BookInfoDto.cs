@@ -1,4 +1,5 @@
-﻿using Library.Backend.DTOs.User;
+﻿using Library.Backend.DTOs.Genre;
+using Library.Backend.DTOs.User;
 
 namespace Library.Backend.DTOs.Book;
 
@@ -11,4 +12,5 @@ public class BookInfoDto
     public DateTime CreatedDate { get; set; }
     public DateTime? PublishDate { get; set; }
     public UserInfoDto? TakenByUser { get; set; }
+    public required List<GenreInfoDto> Genres { get; set; }
 }

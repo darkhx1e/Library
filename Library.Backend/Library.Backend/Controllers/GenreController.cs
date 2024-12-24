@@ -1,4 +1,5 @@
-﻿using Library.Backend.Models;
+﻿using Library.Backend.DTOs.Genre;
+using Library.Backend.Models;
 using Library.Backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,16 +18,15 @@ public class GenreController : ControllerBase
         _genreService = genreService;
     }
 
-    [Authorize(Roles = "Admin")]
     [HttpGet("getAllGenres")]
-    public async Task<ActionResult<List<Genre>>> GetAllGenres()
+    public async Task<ActionResult<List<GenreInfoDto>>> GetAllGenres()
     {
         return Ok(await _genreService.GetAllGenres());
     }
 
     [Authorize(Roles = "Admin")]
     [HttpPost("addGenre")]
-    public async Task<ActionResult<Genre>> AddGenre([FromBody] string name)
+    public async Task<ActionResult> AddGenre([FromBody] string name)
     {
         try
         {
@@ -41,7 +41,7 @@ public class GenreController : ControllerBase
 
     [Authorize(Roles = "Admin")]
     [HttpPatch("updateGenre")]
-    public async Task<ActionResult<Genre>> UpdateGenre([FromBody] Genre genre)
+    public async Task<ActionResult> UpdateGenre([FromBody] UpdateGenreDto genre)
     {
         try
         {

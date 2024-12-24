@@ -1,4 +1,5 @@
 ﻿using Library.Backend.Data;
+using Library.Backend.DTOs.Genre;
 using Library.Backend.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,9 +14,13 @@ public class GenreService
         _context = context;
     }
 
-    public async Task<List<Genre>> GetAllGenres()
+    public async Task<List<GenreInfoDto>> GetAllGenres()
     {
-        return await _context.Genres.ToListAsync();
+        return await _context.Genres.Select(g => new GenreInfoDto
+        {
+            Id = g.Id,
+            Name = g.Name
+        }).ToListAsync();
     }
 
     public async Task<Genre> AddGenre(string genreName)
@@ -40,7 +45,7 @@ public class GenreService
         return genre;
     }
 
-    public async Task<Genre> UpdateGenre(Genre newGenre)
+    public async Task<Genre> UpdateGenre(UpdateGenreDto newGenre)
     {
         var genre = await _context.Genres.FindAsync(newGenre.Id);
 

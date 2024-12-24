@@ -42,18 +42,9 @@ public class BooksController : ControllerBase
     [HttpPost("addBook")]
     public async Task<IActionResult> AddBook([FromBody] CreateBookDto bookDto)
     {
-        var book = new Book
-        {
-            Title = bookDto.Title,
-            Author = bookDto.Author,
-            CreatedDate = DateTime.UtcNow,
-            PublishDate = bookDto.PublishedDate,
-            IsAvailable = true
-        };
-        
         try
         {
-            await _bookService.CreateBook(book);
+            await _bookService.CreateBook(bookDto);
             return Ok("Book created");
         }
         catch (Exception ex)
@@ -62,7 +53,7 @@ public class BooksController : ControllerBase
         }
     }
 
-    [HttpPost("addMultipleBooks")]
+    /*[HttpPost("addMultipleBooks")]
     public async Task<ActionResult> AddMultipleBooks(List<CreateBookDto>? books)
     {
         if (books == null || !books.Any())
@@ -79,7 +70,7 @@ public class BooksController : ControllerBase
         {
             return BadRequest($"An error occurred: {ex.Message}");
         }
-    }
+    }*/
 
     [HttpPatch("updateBook/{id}")]
     public async Task<ActionResult<BookInfoDto>> UpdateBook(int id, UpdateBookDto updateBookDto)
