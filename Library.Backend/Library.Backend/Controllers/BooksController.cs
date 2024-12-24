@@ -84,6 +84,20 @@ public class BooksController : ControllerBase
 
         return Ok(updatedBook);
     }
+    
+    [HttpDelete("deleteBook")]
+    public async Task<ActionResult<bool>> DeleteBook(int id)
+    {
+        try
+        {
+            await _bookService.DeleteBook(id);
+            return Ok("Book successfully deleted!");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
 
     [HttpPost("takeBook")]
     public async Task<ActionResult<bool>> TakeBook(int bookId)
@@ -119,20 +133,6 @@ public class BooksController : ControllerBase
         {
             await _bookService.ReturnBook(bookId);
             return Ok("Book successfully returned!");
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
-    }
-
-    [HttpDelete("deleteBook")]
-    public async Task<ActionResult<bool>> DeleteBook(int id)
-    {
-        try
-        {
-            await _bookService.DeleteBook(id);
-            return Ok("Book successfully deleted!");
         }
         catch (Exception ex)
         {

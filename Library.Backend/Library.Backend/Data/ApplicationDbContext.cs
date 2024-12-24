@@ -14,13 +14,14 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ApplicationUser> ApplicationUsers { get; set; }
     public DbSet<Genre> Genres { get; set; }
     public DbSet<BookGenre> BookGenres { get; set; }
+    public DbSet<BookHistory> BookHistories { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
         
         modelBuilder.Entity<BookGenre>()
-            .HasKey(bg => new { bg.BookId, bg.GenreId });  // Composite key
+            .HasKey(bg => new { bg.BookId, bg.GenreId });  
 
         modelBuilder.Entity<BookGenre>()
             .HasOne(bg => bg.Book)
@@ -34,5 +35,20 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
         modelBuilder.Entity<Genre>()
             .Ignore(b => b.BookGenres);
+
+        modelBuilder.Entity<BookHistory>()
+            .HasKey(bh => bh.Id);
+        
+        modelBuilder.Entity<BookHistory>()
+            .HasOne(bh => bh.Book)
+            .WithMany(b => b.BookHistories)
+            .HasForeignKey(bh => bh.BookId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
+        modelBuilder.Entity<BookHistory>()
+            .HasOne(bh => bh.User)
+            .WithMany(u => u.BookHistories)
+            .HasForeignKey(bh => bh.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

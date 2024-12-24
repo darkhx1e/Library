@@ -15,4 +15,5 @@ public class Book
     public string? TakenByUserId { get; set; }
     public ApplicationUser? TakenByUser { get; set; }
     public required ICollection<BookGenre> BookGenres { get; set; }
+    public ICollection<BookHistory> BookHistories { get; set; } = new List<BookHistory>();
 }

@@ -30,48 +30,43 @@ public class BookService
         {
             query = query.Where(b => b.Author.ToLower().Contains(bookQueryParameters.Author.ToLower()));
         }
-        
+
         if (bookQueryParameters.GenreIds != null && bookQueryParameters.GenreIds.Any())
         {
             query = query.Where(b => b.BookGenres.Any(bg => bookQueryParameters.GenreIds.Contains(bg.GenreId)));
         }
 
-        var paginatedBooks = await PaginatedList<Book>
-            .CreateAsync(query.Include(b => b.TakenByUser)
-                .Include(b => b.BookGenres)
-                .ThenInclude(bg => bg.Genre), bookQueryParameters.Page, bookQueryParameters.PageSize);
-        
-        var bookDtos = paginatedBooks.Items.Select(book => new BookInfoDto
-        {
-            Id = book.Id,
-            Title = book.Title,
-            Author = book.Author,
-            CreatedDate = book.CreatedDate,
-            PublishDate = book.PublishDate,
-            IsAvailable = book.IsAvailable,
-            TakenByUser = book.TakenByUser == null
-                ? null
-                : new UserInfoDto
-                {
-                    Id = book.TakenByUser.Id,
-                    Email = book.TakenByUser.Email,
-                    Name = book.TakenByUser.Name,
-                    Surname = book.TakenByUser.Surname,
-                },
-            Genres = book.BookGenres.Select(bg => new GenreInfoDto
-                {
-                    Id = bg.GenreId,
-                    Name = bg.Genre.Name,
-                }
-            ).ToList(),
-        }).ToList();
+        var source = query
+            .Include(b => b.TakenByUser)
+            .Include(b => b.BookGenres)
+            .ThenInclude(bg => bg.Genre)
+            .Select(book => new BookInfoDto
+            {
+                Id = book.Id,
+                Title = book.Title,
+                Author = book.Author,
+                CreatedDate = book.CreatedDate,
+                PublishDate = book.PublishDate,
+                IsAvailable = book.IsAvailable,
+                TakenByUser = book.TakenByUser == null
+                    ? null
+                    : new UserInfoDto
+                    {
+                        Id = book.TakenByUser.Id,
+                        Email = book.TakenByUser.Email,
+                        Name = book.TakenByUser.Name,
+                        Surname = book.TakenByUser.Surname,
+                    },
+                Genres = book.BookGenres.Select(bg => new GenreInfoDto
+                    {
+                        Id = bg.GenreId,
+                        Name = bg.Genre.Name,
+                    }
+                ).ToList(),
+            });
 
-        return new PaginatedList<BookInfoDto>(
-            bookDtos,
-            paginatedBooks.PageNumber,
-            bookQueryParameters.PageSize,
-            paginatedBooks.TotalCount
-        );
+        return await PaginatedList<BookInfoDto>.CreateAsync(source, bookQueryParameters.Page,
+            bookQueryParameters.PageSize);
     }
 
     public async Task<BookInfoDto?> GetBookById(int id)
@@ -188,27 +183,6 @@ public class BookService
         return book;
     }
 
-    public async Task<bool> TakeBook(int bookId, ApplicationUser user)
-    {
-        var book = await _context.Books.FirstOrDefaultAsync(b => b.Id == bookId);
-
-        if (book == null)
-        {
-            throw new Exception("Book not found.");
-        }
-
-        if (!book.IsAvailable)
-        {
-            throw new Exception("Book is already taken.");
-        }
-
-        book.IsAvailable = false;
-        book.TakenByUserId = user.Id;
-
-        await _context.SaveChangesAsync();
-        return true;
-    }
-
     public async Task<bool> DeleteBook(int bookId)
     {
         var book = await _context.Books.FirstOrDefaultAsync(b => b.Id == bookId);
@@ -228,6 +202,36 @@ public class BookService
         return true;
     }
 
+    public async Task<bool> TakeBook(int bookId, ApplicationUser user)
+    {
+        var book = await _context.Books.FirstOrDefaultAsync(b => b.Id == bookId);
+
+        if (book == null)
+        {
+            throw new Exception("Book not found.");
+        }
+
+        if (!book.IsAvailable)
+        {
+            throw new Exception("Book is already taken.");
+        }
+
+        book.IsAvailable = false;
+        book.TakenByUserId = user.Id;
+
+        _context.BookHistories.Add(new BookHistory
+        {
+            Book = book,
+            BookId = bookId,
+            User = user,
+            UserId = user.Id,
+            BorrowDate = DateTime.UtcNow,
+        });
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
     public async Task<bool> ReturnBook(int bookId)
     {
         var book = await _context.Books.FirstOrDefaultAsync(b => b.Id == bookId);
@@ -240,6 +244,14 @@ public class BookService
         if (book.IsAvailable)
         {
             throw new Exception("Book is not taken.");
+        }
+
+        var bookHistory =
+            await _context.BookHistories.FirstOrDefaultAsync(h => h.BookId == bookId && h.UserId == book.TakenByUserId);
+
+        if (bookHistory != null)
+        {
+            bookHistory.ReturnDate = DateTime.UtcNow;
         }
 
         book.IsAvailable = true;
