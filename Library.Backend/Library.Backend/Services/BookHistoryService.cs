@@ -68,7 +68,7 @@ public class BookHistoryService
 
         if (bookHistory == null)
         {
-            throw new Exception($"Book history with id: {id} not found");
+            throw new KeyNotFoundException($"Book history with id: {id} not found");
         }
 
         return MapToDto(bookHistory);
@@ -85,7 +85,7 @@ public class BookHistoryService
 
         if (bookHistory == null)
         {
-            throw new Exception($"Book history with bookId: {bookId} not found");
+            throw new KeyNotFoundException($"Book history with bookId: {bookId} not found");
         }
 
         return MapToDto(bookHistory);
@@ -102,7 +102,7 @@ public class BookHistoryService
 
         if (bookHistory == null)
         {
-            throw new Exception($"Book history with userId: {userId} not found");
+            throw new KeyNotFoundException($"Book history with userId: {userId} not found");
         }
 
         return MapToDto(bookHistory);
@@ -116,12 +116,12 @@ public class BookHistoryService
 
         if (bookHistory == null)
         {
-            throw new Exception($"Book history with id: {id} not found");
+            throw new KeyNotFoundException($"Book history with id: {id} not found");
         }
 
         if (!bookHistory.Book.IsAvailable)
         {
-            throw new Exception($"History of a taken book can't be deleted");
+            throw new ArgumentException($"History of a taken book can't be deleted");
         }
         
         _context.BookHistories.Remove(bookHistory);

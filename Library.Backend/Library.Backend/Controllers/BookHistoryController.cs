@@ -29,57 +29,29 @@ public class BookHistoryController : ControllerBase
     [HttpGet("getHistoryById")]
     public async Task<ActionResult<BookHistoryInfoDto>> GetBookHistoryById(int id)
     {
-        try
-        {
-            var bookHistory = await _bookHistoryService.GetHistoryById(id);
-            return Ok(bookHistory);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var bookHistory = await _bookHistoryService.GetHistoryById(id);
+        return Ok(bookHistory);
     }
 
     [HttpGet("getHistoryByBookId")]
     public async Task<ActionResult<BookHistoryInfoDto>> GetBookHistoryByBookId(int bookId)
     {
-        try
-        {
-            var bookHistory = await _bookHistoryService.GetHistoryByBookId(bookId);
-            return Ok(bookHistory);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var bookHistory = await _bookHistoryService.GetHistoryByBookId(bookId);
+        return Ok(bookHistory);
     }
 
     [HttpGet("getHistoryByUserId")]
     public async Task<ActionResult<BookHistoryInfoDto>> GetBookHistoryByUserId(string userId)
     {
-        try
-        {
-            var bookHistory = await _bookHistoryService.GetHistoryByUserId(userId);
-            return Ok(bookHistory);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        var bookHistory = await _bookHistoryService.GetHistoryByUserId(userId);
+        return Ok(bookHistory);
     }
 
     [Authorize(Roles = "Admin")]
     [HttpDelete("clearHistory")]
     public async Task<ActionResult<bool>> ClearHistory(int id)
     {
-        try
-        {
-            await _bookHistoryService.ClearBookHistory(id);
-            return Ok("Book history has been cleared");
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        await _bookHistoryService.ClearBookHistory(id);
+        return Ok("Book history has been cleared");
     }
 }

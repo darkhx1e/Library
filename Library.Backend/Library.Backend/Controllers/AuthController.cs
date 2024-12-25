@@ -45,41 +45,27 @@ public class AuthController : Controller
     [HttpPost("addRole")]
     public async Task<IActionResult> AddRoleToUser(string userId, string role)
     {
-        try
-        {
-            var result = await _authService.AddRole(userId, role);
+        var result = await _authService.AddRole(userId, role);
 
-            if (!result.Succeeded)
-            {
-                return BadRequest(result.Errors);
-            }
-
-            return Ok("Role added successfully");
-        }
-        catch (ArgumentException ex)
+        if (!result.Succeeded)
         {
-            return BadRequest(ex.Message);
+            return BadRequest(result.Errors);
         }
+
+        return Ok("Role added successfully");
     }
 
     [Authorize(Roles = "Admin")]
     [HttpPost("removeRole")]
     public async Task<IActionResult> RemoveRoleFromUser(string userId, string role)
     {
-        try
-        {
-            var result = await _authService.RemoveRole(userId, role);
+        var result = await _authService.RemoveRole(userId, role);
 
-            if (!result.Succeeded)
-            {
-                return BadRequest(result.Errors);
-            }
-
-            return Ok("Role added successfully");
-        }
-        catch (ArgumentException ex)
+        if (!result.Succeeded)
         {
-            return BadRequest(ex.Message);
+            return BadRequest(result.Errors);
         }
+
+        return Ok("Role added successfully");
     }
 }

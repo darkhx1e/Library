@@ -27,12 +27,12 @@ public class GenreService
     {
         if (genreName.Any(char.IsDigit))
         {
-            throw new Exception("Genre name cannot contain numbers");
+            throw new ArgumentException("Genre name cannot contain numbers");
         }
         
         if (_context.Genres.Any(g => g.Name.ToLower() == genreName.ToLower()))
         {
-            throw new Exception($"Genre {genreName} already exists");
+            throw new ArgumentException($"Genre {genreName} already exists");
         }
         
         var genre = new Genre
@@ -51,17 +51,17 @@ public class GenreService
 
         if (genre == null)
         {
-            throw new Exception("Genre not found");
+            throw new KeyNotFoundException("Genre not found");
         }
         
         if (newGenre.Name.Any(char.IsDigit))
         {
-            throw new Exception("Genre name cannot contain numbers");
+            throw new ArgumentException("Genre name cannot contain numbers");
         }
         
         if (_context.Genres.Any(g => g.Name.ToLower() == newGenre.Name.ToLower()))
         {
-            throw new Exception($"Genre {newGenre.Name} already exists");
+            throw new ArgumentException($"Genre {newGenre.Name} already exists");
         }
         
         genre.Name = newGenre.Name;

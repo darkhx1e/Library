@@ -47,7 +47,7 @@ public class AuthService
         var user = await _userManager.FindByEmailAsync(email);
         if (user == null)
         {
-            throw new ArgumentException("User not found.");
+            throw new KeyNotFoundException("User not found.");
         }
 
         if (!await _userManager.CheckPasswordAsync(user, password))
@@ -65,13 +65,13 @@ public class AuthService
 
         if (user == null)
         {
-            throw new ArgumentException("User not found.");
+            throw new KeyNotFoundException("User not found.");
         }
 
         var roleExists = await _roleManager.RoleExistsAsync(roleName);
         if (!roleExists)
         {
-            throw new ArgumentException("Role not found.");
+            throw new KeyNotFoundException("Role not found.");
         }
 
         var result = await _userManager.AddToRoleAsync(user, roleName);
@@ -83,12 +83,12 @@ public class AuthService
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
         {
-            throw new ArgumentException("User not found.");
+            throw new KeyNotFoundException("User not found.");
         }
         var roleExists = await _roleManager.RoleExistsAsync(roleName);
         if (!roleExists)
         {
-            throw new ArgumentException("Role not found.");
+            throw new KeyNotFoundException("Role not found.");
         }
         
         var result = await _userManager.RemoveFromRoleAsync(user, roleName);

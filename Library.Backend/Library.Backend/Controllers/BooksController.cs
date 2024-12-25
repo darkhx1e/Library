@@ -25,7 +25,8 @@ public class BooksController : ControllerBase
     }
 
     [HttpGet("getAllBooks")]
-    public async Task<ActionResult<PaginatedList<BookInfoDto>>> GetAllBooks([FromQuery] BookQueryParameters bookQueryParameters)
+    public async Task<ActionResult<PaginatedList<BookInfoDto>>> GetAllBooks(
+        [FromQuery] BookQueryParameters bookQueryParameters)
     {
         return Ok(await _bookService.GetAllBooks(bookQueryParameters));
     }
@@ -34,23 +35,14 @@ public class BooksController : ControllerBase
     public async Task<ActionResult<BookInfoDto>> GetBookById(int id)
     {
         var book = await _bookService.GetBookById(id);
-        if (book == null) return NotFound();
-        
         return Ok(book);
     }
 
     [HttpPost("addBook")]
     public async Task<IActionResult> AddBook([FromBody] CreateBookDto bookDto)
     {
-        try
-        {
-            await _bookService.CreateBook(bookDto);
-            return Ok("Book created");
-        }
-        catch (Exception ex)
-        {
-            return BadRequest($"An error occurred: {ex.Message}");
-        }
+        await _bookService.CreateBook(bookDto);
+        return Ok("Book created");
     }
 
     /*[HttpPost("addMultipleBooks")]
@@ -60,7 +52,7 @@ public class BooksController : ControllerBase
         {
             return BadRequest("No books provided.");
         }
-        
+
         try
         {
             await _bookService.AddMultipleBooks(books);
@@ -76,27 +68,14 @@ public class BooksController : ControllerBase
     public async Task<ActionResult<BookInfoDto>> UpdateBook(int id, UpdateBookDto updateBookDto)
     {
         var updatedBook = await _bookService.UpdateBook(id, updateBookDto);
-
-        if (updatedBook == null)
-        {
-            return NotFound();
-        }
-
         return Ok(updatedBook);
     }
-    
+
     [HttpDelete("deleteBook")]
     public async Task<ActionResult<bool>> DeleteBook(int id)
     {
-        try
-        {
-            await _bookService.DeleteBook(id);
-            return Ok("Book successfully deleted!");
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        await _bookService.DeleteBook(id);
+        return Ok("Book successfully deleted!");
     }
 
     [HttpPost("takeBook")]
@@ -108,35 +87,21 @@ public class BooksController : ControllerBase
         {
             return Unauthorized();
         }
-        
+
         var user = await _userManager.FindByEmailAsync(userId);
         if (user == null)
         {
             return Unauthorized();
         }
 
-        try
-        {
-            await _bookService.TakeBook(bookId, user);
-            return Ok("Book successfully taken!");
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        await _bookService.TakeBook(bookId, user);
+        return Ok("Book successfully taken!");
     }
-    
+
     [HttpPost("returnBook")]
     public async Task<ActionResult<bool>> ReturnBook(int bookId)
     {
-        try
-        {
-            await _bookService.ReturnBook(bookId);
-            return Ok("Book successfully returned!");
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        await _bookService.ReturnBook(bookId);
+        return Ok("Book successfully returned!");
     }
 }

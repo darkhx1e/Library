@@ -28,44 +28,23 @@ public class GenreController : ControllerBase
     [HttpPost("addGenre")]
     public async Task<ActionResult> AddGenre([FromBody] string name)
     {
-        try
-        {
-            await _genreService.AddGenre(name);
-            return Ok("Genre added");
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        await _genreService.AddGenre(name);
+        return Ok("Genre added");
     }
 
     [Authorize(Roles = "Admin")]
     [HttpPatch("updateGenre")]
     public async Task<ActionResult> UpdateGenre([FromBody] UpdateGenreDto genre)
     {
-        try
-        {
-            await _genreService.UpdateGenre(genre);
-            return Ok("Genre updated");
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        await _genreService.UpdateGenre(genre);
+        return Ok("Genre updated");
     }
 
     [Authorize(Roles = "Admin")]
     [HttpDelete("deleteGenre")]
     public async Task<IActionResult> DeleteGenre(int id)
     {
-        try
-        {
-            await _genreService.DeleteGenre(id);
-            return Ok("Genre deleted");
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
+        await _genreService.DeleteGenre(id);
+        return Ok("Genre deleted");
     }
 }

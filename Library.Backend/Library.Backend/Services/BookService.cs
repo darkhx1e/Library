@@ -77,7 +77,10 @@ public class BookService
             .ThenInclude(bg => bg.Genre)
             .FirstOrDefaultAsync(b => b.Id == id);
 
-        if (book == null) return null;
+        if (book == null)
+        {
+            throw new KeyNotFoundException("Book not found");
+        }
 
         var bookDto = new BookInfoDto()
         {
@@ -157,7 +160,10 @@ public class BookService
             .Include(b => b.BookGenres)
             .FirstOrDefaultAsync(b => b.Id == id);
 
-        if (book == null) return null;
+        if (book == null)
+        {
+            throw new KeyNotFoundException("Book not found");
+        }
 
         book.Title = updateBookDto.Title;
         book.Author = updateBookDto.Author;
@@ -189,12 +195,12 @@ public class BookService
 
         if (book == null)
         {
-            throw new Exception("Book not found.");
+            throw new KeyNotFoundException("Book not found.");
         }
 
         if (!book.IsAvailable)
         {
-            throw new Exception("Can't delete this book because it is already taken.");
+            throw new ArgumentException("Can't delete this book because it is already taken.");
         }
 
         _context.Books.Remove(book);
@@ -208,12 +214,12 @@ public class BookService
 
         if (book == null)
         {
-            throw new Exception("Book not found.");
+            throw new KeyNotFoundException("Book not found.");
         }
 
         if (!book.IsAvailable)
         {
-            throw new Exception("Book is already taken.");
+            throw new ArgumentException("Book is already taken.");
         }
 
         book.IsAvailable = false;
@@ -238,12 +244,12 @@ public class BookService
 
         if (book == null)
         {
-            throw new Exception("Book not found.");
+            throw new KeyNotFoundException("Book not found.");
         }
 
         if (book.IsAvailable)
         {
-            throw new Exception("Book is not taken.");
+            throw new ArgumentException("Book is not taken.");
         }
 
         var bookHistory =
