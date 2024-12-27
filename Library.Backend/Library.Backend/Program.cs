@@ -19,6 +19,7 @@ builder.Services.AddScoped<BookService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<GenreService>();
 builder.Services.AddScoped<BookHistoryService>();
+builder.Services.AddScoped<UserService>();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
