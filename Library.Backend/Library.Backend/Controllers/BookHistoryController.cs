@@ -1,7 +1,7 @@
-﻿using Library.Backend.Data;
-using Library.Backend.DTOs.BookHistory;
+﻿using Library.Backend.DTOs.BookHistory;
 using Library.Backend.Queries;
 using Library.Backend.Services;
+using Library.Backend.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
