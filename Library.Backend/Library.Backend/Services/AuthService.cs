@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Library.Backend.DTOs.User;
 using Library.Backend.Models;
+using Library.Backend.Utils;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 
@@ -47,12 +48,12 @@ public class AuthService
         var user = await _userManager.FindByEmailAsync(email);
         if (user == null)
         {
-            throw new KeyNotFoundException("User not found.");
+            throw new CustomException("User not found.", StatusCodes.Status404NotFound);
         }
 
         if (!await _userManager.CheckPasswordAsync(user, password))
         {
-            throw new ArgumentException("Invalid password.");
+            throw new CustomException("Invalid password.", StatusCodes.Status400BadRequest);
         }
 
         var token = await GenerateJwtToken(user);
@@ -65,13 +66,13 @@ public class AuthService
 
         if (user == null)
         {
-            throw new KeyNotFoundException("User not found.");
+            throw new CustomException("User not found.", 404);
         }
 
         var roleExists = await _roleManager.RoleExistsAsync(roleName);
         if (!roleExists)
         {
-            throw new KeyNotFoundException("Role not found.");
+            throw new CustomException("Role not found.", StatusCodes.Status404NotFound);
         }
 
         var result = await _userManager.AddToRoleAsync(user, roleName);
@@ -83,12 +84,12 @@ public class AuthService
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
         {
-            throw new KeyNotFoundException("User not found.");
+            throw new CustomException("User not found.", StatusCodes.Status404NotFound);
         }
         var roleExists = await _roleManager.RoleExistsAsync(roleName);
         if (!roleExists)
         {
-            throw new KeyNotFoundException("Role not found.");
+            throw new CustomException("Role not found.", StatusCodes.Status404NotFound);
         }
         
         var result = await _userManager.RemoveFromRoleAsync(user, roleName);
@@ -102,6 +103,7 @@ public class AuthService
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.UserName!),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim("Id", user.Id),
         };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:SecretKey"]!));

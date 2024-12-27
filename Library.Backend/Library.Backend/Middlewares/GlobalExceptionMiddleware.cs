@@ -1,4 +1,4 @@
-﻿using Library.Backend.Data;
+﻿using Library.Backend.Utils;
 
 namespace Library.Backend.Middlewares;
 
@@ -17,30 +17,22 @@ public class GlobalExceptionMiddleware
         {
             await _next(context);
         }
-        catch (Exception ex)
+        catch (CustomException ex)
         {
             await HandleExceptionAsync(context, ex);
         }
     }
     
-    private static Task HandleExceptionAsync(HttpContext context, Exception ex)
+    private static Task HandleExceptionAsync(HttpContext context, CustomException ex)
     {
-        var statusCode = ex switch
-        {
-            ArgumentException => StatusCodes.Status400BadRequest,
-            KeyNotFoundException => StatusCodes.Status404NotFound,
-            _ => StatusCodes.Status500InternalServerError
-        };
-
         var errorResponse = new ApiErrorResponse
         {
-            StatusCode = statusCode,
+            StatusCode = ex.StatusCode,
             Message = ex.Message,
-            Details = statusCode == StatusCodes.Status500InternalServerError ? "Internal Server Error" : null
         };
 
         context.Response.ContentType = "application/json";
-        context.Response.StatusCode = statusCode;
+        context.Response.StatusCode = ex.StatusCode;
 
         return context.Response.WriteAsJsonAsync(errorResponse);
     }

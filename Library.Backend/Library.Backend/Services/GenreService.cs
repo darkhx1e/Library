@@ -1,6 +1,7 @@
 ﻿using Library.Backend.Data;
 using Library.Backend.DTOs.Genre;
 using Library.Backend.Models;
+using Library.Backend.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace Library.Backend.Services;
@@ -27,12 +28,12 @@ public class GenreService
     {
         if (genreName.Any(char.IsDigit))
         {
-            throw new ArgumentException("Genre name cannot contain numbers");
+            throw new CustomException("Genre name cannot contain numbers", StatusCodes.Status400BadRequest);
         }
         
         if (_context.Genres.Any(g => g.Name.ToLower() == genreName.ToLower()))
         {
-            throw new ArgumentException($"Genre {genreName} already exists");
+            throw new CustomException($"Genre {genreName} already exists", StatusCodes.Status400BadRequest);
         }
         
         var genre = new Genre
@@ -51,17 +52,17 @@ public class GenreService
 
         if (genre == null)
         {
-            throw new KeyNotFoundException("Genre not found");
+            throw new CustomException("Genre not found", StatusCodes.Status404NotFound);
         }
         
         if (newGenre.Name.Any(char.IsDigit))
         {
-            throw new ArgumentException("Genre name cannot contain numbers");
+            throw new CustomException("Genre name cannot contain numbers", StatusCodes.Status400BadRequest);
         }
         
         if (_context.Genres.Any(g => g.Name.ToLower() == newGenre.Name.ToLower()))
         {
-            throw new ArgumentException($"Genre {newGenre.Name} already exists");
+            throw new CustomException($"Genre {newGenre.Name} already exists", StatusCodes.Status400BadRequest);
         }
         
         genre.Name = newGenre.Name;
@@ -75,7 +76,7 @@ public class GenreService
 
         if (genre == null)
         {
-            throw new Exception("Genre not found");
+            throw new CustomException("Genre not found", StatusCodes.Status404NotFound);
         }
         
         _context.Genres.Remove(genre);

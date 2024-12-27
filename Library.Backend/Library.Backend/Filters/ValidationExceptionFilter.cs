@@ -1,4 +1,4 @@
-﻿using Library.Backend.Data;
+﻿using Library.Backend.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
@@ -21,7 +21,6 @@ public class ValidationExceptionFilter : IActionFilter
             {
                 StatusCode = 400,
                 Message = message,
-                Details = "One or more validation errors occurred."
             };
 
             context.Result = new JsonResult(response)

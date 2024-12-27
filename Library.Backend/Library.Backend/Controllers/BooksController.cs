@@ -1,11 +1,9 @@
 ﻿using System.Security.Claims;
-using Library.Backend.Data;
 using Library.Backend.DTOs.Book;
-using Library.Backend.Models;
 using Library.Backend.Queries;
 using Library.Backend.Services;
+using Library.Backend.Utils;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Library.Backend.Controllers;
@@ -16,12 +14,10 @@ namespace Library.Backend.Controllers;
 public class BooksController : ControllerBase
 {
     private readonly BookService _bookService;
-    private readonly UserManager<ApplicationUser> _userManager;
 
-    public BooksController(BookService bookService, UserManager<ApplicationUser> userManager)
+    public BooksController(BookService bookService)
     {
         _bookService = bookService;
-        _userManager = userManager;
     }
 
     [HttpGet("getAllBooks")]
@@ -81,20 +77,14 @@ public class BooksController : ControllerBase
     [HttpPost("takeBook")]
     public async Task<ActionResult<bool>> TakeBook(int bookId)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = User.FindFirstValue("Id");
 
         if (userId == null)
         {
             return Unauthorized();
         }
-
-        var user = await _userManager.FindByEmailAsync(userId);
-        if (user == null)
-        {
-            return Unauthorized();
-        }
-
-        await _bookService.TakeBook(bookId, user);
+        
+        await _bookService.TakeBook(bookId, userId);
         return Ok("Book successfully taken!");
     }
 

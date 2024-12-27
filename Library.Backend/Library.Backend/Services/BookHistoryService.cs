@@ -5,6 +5,7 @@ using Library.Backend.DTOs.Genre;
 using Library.Backend.DTOs.User;
 using Library.Backend.Models;
 using Library.Backend.Queries;
+using Library.Backend.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace Library.Backend.Services;
@@ -68,7 +69,7 @@ public class BookHistoryService
 
         if (bookHistory == null)
         {
-            throw new KeyNotFoundException($"Book history with id: {id} not found");
+            throw new CustomException($"Book history with id: {id} not found", StatusCodes.Status404NotFound);
         }
 
         return MapToDto(bookHistory);
@@ -85,7 +86,7 @@ public class BookHistoryService
 
         if (bookHistory == null)
         {
-            throw new KeyNotFoundException($"Book history with bookId: {bookId} not found");
+            throw new CustomException($"Book history with bookId: {bookId} not found", StatusCodes.Status404NotFound);
         }
 
         return MapToDto(bookHistory);
@@ -102,7 +103,7 @@ public class BookHistoryService
 
         if (bookHistory == null)
         {
-            throw new KeyNotFoundException($"Book history with userId: {userId} not found");
+            throw new CustomException($"Book history with userId: {userId} not found", StatusCodes.Status404NotFound);
         }
 
         return MapToDto(bookHistory);
@@ -116,12 +117,12 @@ public class BookHistoryService
 
         if (bookHistory == null)
         {
-            throw new KeyNotFoundException($"Book history with id: {id} not found");
+            throw new CustomException($"Book history with id: {id} not found", StatusCodes.Status404NotFound);
         }
 
         if (!bookHistory.Book.IsAvailable)
         {
-            throw new ArgumentException($"History of a taken book can't be deleted");
+            throw new CustomException($"History of a taken book can't be deleted", statusCode: StatusCodes.Status400BadRequest);
         }
         
         _context.BookHistories.Remove(bookHistory);

@@ -4,6 +4,8 @@ using Library.Backend.DTOs.Genre;
 using Library.Backend.DTOs.User;
 using Library.Backend.Models;
 using Library.Backend.Queries;
+using Library.Backend.Utils;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace Library.Backend.Services;
@@ -11,10 +13,12 @@ namespace Library.Backend.Services;
 public class BookService
 {
     private readonly ApplicationDbContext _context;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public BookService(ApplicationDbContext context)
+    public BookService(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
     {
         _context = context;
+        _userManager = userManager;
     }
 
     public async Task<PaginatedList<BookInfoDto>> GetAllBooks(BookQueryParameters bookQueryParameters)
@@ -79,7 +83,7 @@ public class BookService
 
         if (book == null)
         {
-            throw new KeyNotFoundException("Book not found");
+            throw new CustomException("Book not found", StatusCodes.Status404NotFound);
         }
 
         var bookDto = new BookInfoDto()
@@ -162,7 +166,7 @@ public class BookService
 
         if (book == null)
         {
-            throw new KeyNotFoundException("Book not found");
+            throw new CustomException("Book not found", StatusCodes.Status404NotFound);
         }
 
         book.Title = updateBookDto.Title;
@@ -195,12 +199,12 @@ public class BookService
 
         if (book == null)
         {
-            throw new KeyNotFoundException("Book not found.");
+            throw new CustomException("Book not found.", StatusCodes.Status404NotFound);
         }
 
         if (!book.IsAvailable)
         {
-            throw new ArgumentException("Can't delete this book because it is already taken.");
+            throw new CustomException("Can't delete this book because it is already taken.", StatusCodes.Status400BadRequest);
         }
 
         _context.Books.Remove(book);
@@ -208,20 +212,27 @@ public class BookService
         return true;
     }
 
-    public async Task<bool> TakeBook(int bookId, ApplicationUser user)
+    public async Task<bool> TakeBook(int bookId, string userId)
     {
         var book = await _context.Books.FirstOrDefaultAsync(b => b.Id == bookId);
 
         if (book == null)
         {
-            throw new KeyNotFoundException("Book not found.");
+            throw new CustomException("Book not found.", StatusCodes.Status404NotFound);
         }
 
         if (!book.IsAvailable)
         {
-            throw new ArgumentException("Book is already taken.");
+            throw new CustomException("Book is already taken.", StatusCodes.Status400BadRequest);
         }
+        
+        var user = await _userManager.FindByIdAsync(userId);
 
+        if (user == null)
+        {
+            throw new CustomException("User not found.", StatusCodes.Status404NotFound);
+        }
+        
         book.IsAvailable = false;
         book.TakenByUserId = user.Id;
 
@@ -244,12 +255,12 @@ public class BookService
 
         if (book == null)
         {
-            throw new KeyNotFoundException("Book not found.");
+            throw new CustomException("Book not found.", StatusCodes.Status404NotFound);
         }
 
         if (book.IsAvailable)
         {
-            throw new ArgumentException("Book is not taken.");
+            throw new CustomException("Book is not taken.", StatusCodes.Status400BadRequest);
         }
 
         var bookHistory =

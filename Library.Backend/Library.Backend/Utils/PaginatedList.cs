@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace Library.Backend.Data;
+namespace Library.Backend.Utils;
 
 public class PaginatedList<T>(IReadOnlyList<T> items, int pageNumber, int pageSize, int totalCount)
 {
