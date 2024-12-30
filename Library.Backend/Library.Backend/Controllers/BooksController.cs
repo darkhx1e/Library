@@ -35,7 +35,7 @@ public class BooksController : ControllerBase
     }
 
     [HttpPost("addBook")]
-    public async Task<IActionResult> AddBook([FromBody] CreateBookDto bookDto)
+    public async Task<IActionResult> AddBook([FromForm] CreateBookDto bookDto)
     {
         await _bookService.CreateBook(bookDto);
         return Ok("Book created");

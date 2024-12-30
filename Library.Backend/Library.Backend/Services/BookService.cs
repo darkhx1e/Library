@@ -52,6 +52,7 @@ public class BookService
                 CreatedDate = book.CreatedDate,
                 PublishDate = book.PublishDate,
                 IsAvailable = book.IsAvailable,
+                CoverImagePath = book.CoverImagePath,
                 TakenByUser = book.TakenByUser == null
                     ? null
                     : new UserInfoDto
@@ -94,6 +95,7 @@ public class BookService
             CreatedDate = book.CreatedDate,
             IsAvailable = book.IsAvailable,
             PublishDate = book.PublishDate,
+            CoverImagePath = book.CoverImagePath,
             TakenByUser = book.TakenByUser == null
                 ? null
                 : new UserInfoDto
@@ -115,6 +117,39 @@ public class BookService
 
     public async Task<Book> CreateBook(CreateBookDto bookDto)
     {
+        await CoverImageUtils.ValidateCoverImage(bookDto.CoverImage);
+        
+        var fileHash = await CoverImageUtils.ComputeCoverImageHash(bookDto.CoverImage);
+        
+        var existingBookWithSameCover = await _context.Books
+            .FirstOrDefaultAsync(b => b.CoverImageHash == fileHash);
+        
+        string coverImagePath;
+
+        if (existingBookWithSameCover != null)
+        {
+            coverImagePath = existingBookWithSameCover.CoverImagePath;
+        }
+        else
+        {
+            var uploadsFolder = Path.Combine("wwwroot", "images", "covers");
+
+            if (!Directory.Exists(uploadsFolder))
+            {
+                Directory.CreateDirectory(uploadsFolder);
+            }
+            
+            var fileName = Guid.NewGuid().ToString() + Path.GetExtension(bookDto.CoverImage.FileName);
+            var filePath = Path.Combine(uploadsFolder, fileName);
+        
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await bookDto.CoverImage.CopyToAsync(stream);
+            }
+
+            coverImagePath = Path.Combine("images", "covers", fileName);
+        }
+        
         var book = new Book
         {
             Title = bookDto.Title,
@@ -123,8 +158,10 @@ public class BookService
             PublishDate = bookDto.PublishedDate,
             IsAvailable = true,
             BookGenres = new List<BookGenre>(),
+            CoverImagePath = coverImagePath,
+            CoverImageHash = fileHash,
         };
-
+        
         foreach (var genreId in bookDto.GenreIds)
         {
             var genre = await _context.Genres.FindAsync(genreId);
@@ -204,7 +241,8 @@ public class BookService
 
         if (!book.IsAvailable)
         {
-            throw new CustomException("Can't delete this book because it is already taken.", StatusCodes.Status400BadRequest);
+            throw new CustomException("Can't delete this book because it is already taken.",
+                StatusCodes.Status400BadRequest);
         }
 
         _context.Books.Remove(book);
@@ -225,14 +263,14 @@ public class BookService
         {
             throw new CustomException("Book is already taken.", StatusCodes.Status400BadRequest);
         }
-        
+
         var user = await _userManager.FindByIdAsync(userId);
 
         if (user == null)
         {
             throw new CustomException("User not found.", StatusCodes.Status404NotFound);
         }
-        
+
         book.IsAvailable = false;
         book.TakenByUserId = user.Id;
 

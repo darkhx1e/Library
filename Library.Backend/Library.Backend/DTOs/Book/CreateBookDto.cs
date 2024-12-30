@@ -13,4 +13,6 @@ public class CreateBookDto
     [Required]
     public required int[] GenreIds { get; set; }
     public DateTime? PublishedDate { get; set; }
+    [Required]
+    public required IFormFile CoverImage { get; set; }
 }

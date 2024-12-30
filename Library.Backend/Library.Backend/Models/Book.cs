@@ -16,4 +16,6 @@ public class Book
     public ApplicationUser? TakenByUser { get; set; }
     public required ICollection<BookGenre> BookGenres { get; set; }
     public ICollection<BookHistory> BookHistories { get; set; } = new List<BookHistory>();
+    public string CoverImagePath { get; set; }
+    public string CoverImageHash { get; set; }
 }

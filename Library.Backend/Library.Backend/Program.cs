@@ -166,6 +166,7 @@ using (var scope = app.Services.CreateScope())
     await RoleInitializer.InitializeRoles(services);
 }
 
+app.UseStaticFiles();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
