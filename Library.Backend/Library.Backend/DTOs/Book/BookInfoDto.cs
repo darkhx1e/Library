@@ -13,6 +13,6 @@ public class BookInfoDto
     public DateTime? PublishDate { get; set; }
     public UserInfoDto? TakenByUser { get; set; }
     public required List<GenreInfoDto> Genres { get; set; }
-    
+
     public string? CoverImagePath { get; set; }
 }

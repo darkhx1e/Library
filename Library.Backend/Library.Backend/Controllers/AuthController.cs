@@ -1,7 +1,6 @@
 ﻿using Library.Backend.DTOs.User;
 using Library.Backend.Services;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Library.Backend.Controllers;
@@ -19,10 +18,7 @@ public class AuthController : Controller
     public async Task<IActionResult> Register(RegisterUserDto registerUserDto)
     {
         var result = await _authService.RegisterUser(registerUserDto);
-        if (!result.Succeeded)
-        {
-            return BadRequest(result.Errors);
-        }
+        if (!result.Succeeded) return BadRequest(result.Errors);
 
         return Ok("User registered successfully");
     }
@@ -47,10 +43,7 @@ public class AuthController : Controller
     {
         var result = await _authService.AddRole(userId, role);
 
-        if (!result.Succeeded)
-        {
-            return BadRequest(result.Errors);
-        }
+        if (!result.Succeeded) return BadRequest(result.Errors);
 
         return Ok("Role added successfully");
     }
@@ -61,10 +54,7 @@ public class AuthController : Controller
     {
         var result = await _authService.RemoveRole(userId, role);
 
-        if (!result.Succeeded)
-        {
-            return BadRequest(result.Errors);
-        }
+        if (!result.Succeeded) return BadRequest(result.Errors);
 
         return Ok("Role added successfully");
     }

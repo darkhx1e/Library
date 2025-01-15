@@ -79,11 +79,8 @@ public class BooksController : ControllerBase
     {
         var userId = User.FindFirstValue("Id");
 
-        if (userId == null)
-        {
-            return Unauthorized();
-        }
-        
+        if (userId == null) return Unauthorized();
+
         await _bookService.TakeBook(bookId, userId);
         return Ok("Book successfully taken!");
     }

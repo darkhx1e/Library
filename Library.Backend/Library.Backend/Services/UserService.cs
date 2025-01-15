@@ -20,18 +20,15 @@ public class UserService
     public async Task<UserInfoDto> GetUserInfo(string userId)
     {
         var user = await _userManager.FindByIdAsync(userId);
-        
-        if (user == null)
-        {
-            throw new CustomException($"User not found", StatusCodes.Status404NotFound);
-        }
+
+        if (user == null) throw new CustomException("User not found", StatusCodes.Status404NotFound);
 
         return new UserInfoDto
         {
             Id = user.Id,
             Email = user.Email,
             Name = user.Name,
-            Surname = user.Surname,
+            Surname = user.Surname
         };
     }
 
@@ -39,14 +36,11 @@ public class UserService
     {
         var user = await _userManager.FindByIdAsync(userId);
 
-        if (user == null)
-        {
-            throw new CustomException($"User not found", StatusCodes.Status404NotFound);
-        }
-        
+        if (user == null) throw new CustomException("User not found", StatusCodes.Status404NotFound);
+
         user.Name = updateUserInfoDto.Name;
         user.Surname = updateUserInfoDto.Surname;
-        
+
         _context.Users.Update(user);
         await _context.SaveChangesAsync();
         return true;
@@ -56,22 +50,17 @@ public class UserService
     {
         var user = await _userManager.FindByIdAsync(userId);
 
-        if (user == null)
-        {
-            throw new CustomException($"User not found.", StatusCodes.Status404NotFound);
-        }
-        
+        if (user == null) throw new CustomException("User not found.", StatusCodes.Status404NotFound);
+
         var passwordHasher = new PasswordHasher<ApplicationUser>();
         var verificationResult =
             passwordHasher.VerifyHashedPassword(user, user.PasswordHash!, changeUserPasswordDto.CurrentPassword);
 
         if (verificationResult != PasswordVerificationResult.Success)
-        {
             throw new CustomException("Current password is incorrect.", StatusCodes.Status400BadRequest);
-        }
-        
+
         user.PasswordHash = passwordHasher.HashPassword(user, changeUserPasswordDto.NewPassword);
-        
+
         _context.Users.Update(user);
         await _context.SaveChangesAsync();
         return true;

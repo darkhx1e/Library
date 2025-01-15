@@ -23,11 +23,8 @@ public class UserController : ControllerBase
     {
         var userId = User.FindFirstValue("Id");
 
-        if (userId == null)
-        {
-            return Unauthorized();
-        }
-        
+        if (userId == null) return Unauthorized();
+
         var user = await _userService.GetUserInfo(userId);
         return Ok(user);
     }
@@ -37,11 +34,8 @@ public class UserController : ControllerBase
     {
         var userId = User.FindFirstValue("Id");
 
-        if (userId == null)
-        {
-            return Unauthorized();
-        }
-        
+        if (userId == null) return Unauthorized();
+
         await _userService.UpdateUserInfo(userId, updateUserInfoDto);
         return Ok("User updated");
     }
@@ -51,13 +45,9 @@ public class UserController : ControllerBase
     {
         var userId = User.FindFirstValue("Id");
 
-        if (userId == null)
-        {
-            return Unauthorized();
-        }
-        
+        if (userId == null) return Unauthorized();
+
         await _userService.ChangeUserPassword(userId, changeUserPasswordDto);
         return Ok("Password changed");
     }
-    
 }

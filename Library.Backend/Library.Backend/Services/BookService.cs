@@ -26,19 +26,13 @@ public class BookService
         var query = _context.Books.AsQueryable();
 
         if (!string.IsNullOrEmpty(bookQueryParameters.Title))
-        {
             query = query.Where(b => b.Title.ToLower().Contains(bookQueryParameters.Title.ToLower()));
-        }
 
         if (!string.IsNullOrEmpty(bookQueryParameters.Author))
-        {
             query = query.Where(b => b.Author.ToLower().Contains(bookQueryParameters.Author.ToLower()));
-        }
 
         if (bookQueryParameters.GenreIds != null && bookQueryParameters.GenreIds.Any())
-        {
             query = query.Where(b => b.BookGenres.Any(bg => bookQueryParameters.GenreIds.Contains(bg.GenreId)));
-        }
 
         var source = query
             .Include(b => b.TakenByUser)
@@ -60,14 +54,14 @@ public class BookService
                         Id = book.TakenByUser.Id,
                         Email = book.TakenByUser.Email,
                         Name = book.TakenByUser.Name,
-                        Surname = book.TakenByUser.Surname,
+                        Surname = book.TakenByUser.Surname
                     },
                 Genres = book.BookGenres.Select(bg => new GenreInfoDto
                     {
                         Id = bg.GenreId,
-                        Name = bg.Genre.Name,
+                        Name = bg.Genre.Name
                     }
-                ).ToList(),
+                ).ToList()
             });
 
         return await PaginatedList<BookInfoDto>.CreateAsync(source, bookQueryParameters.Page,
@@ -82,12 +76,9 @@ public class BookService
             .ThenInclude(bg => bg.Genre)
             .FirstOrDefaultAsync(b => b.Id == id);
 
-        if (book == null)
-        {
-            throw new CustomException("Book not found", StatusCodes.Status404NotFound);
-        }
+        if (book == null) throw new CustomException("Book not found", StatusCodes.Status404NotFound);
 
-        var bookDto = new BookInfoDto()
+        var bookDto = new BookInfoDto
         {
             Id = book.Id,
             Title = book.Title,
@@ -103,12 +94,12 @@ public class BookService
                     Id = book.TakenByUser.Id,
                     Email = book.TakenByUser.Email,
                     Name = book.TakenByUser.Name,
-                    Surname = book.TakenByUser.Surname,
+                    Surname = book.TakenByUser.Surname
                 },
             Genres = book.BookGenres.Select(bg => new GenreInfoDto
             {
                 Id = bg.GenreId,
-                Name = bg.Genre.Name,
+                Name = bg.Genre.Name
             }).ToList()
         };
 
@@ -118,12 +109,12 @@ public class BookService
     public async Task<Book> CreateBook(CreateBookDto bookDto)
     {
         await CoverImageUtils.ValidateCoverImage(bookDto.CoverImage);
-        
+
         var fileHash = await CoverImageUtils.ComputeCoverImageHash(bookDto.CoverImage);
-        
+
         var existingBookWithSameCover = await _context.Books
             .FirstOrDefaultAsync(b => b.CoverImageHash == fileHash);
-        
+
         string coverImagePath;
 
         if (existingBookWithSameCover != null)
@@ -133,7 +124,7 @@ public class BookService
         else
         {
             var uploadsFolder = Path.Combine("wwwroot", "images", "covers");
-
+            
             if (!Directory.Exists(uploadsFolder))
             {
                 Directory.CreateDirectory(uploadsFolder);
@@ -141,15 +132,15 @@ public class BookService
             
             var fileName = Guid.NewGuid().ToString() + Path.GetExtension(bookDto.CoverImage.FileName);
             var filePath = Path.Combine(uploadsFolder, fileName);
-        
+            
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
                 await bookDto.CoverImage.CopyToAsync(stream);
             }
-
+            
             coverImagePath = Path.Combine("images", "covers", fileName);
         }
-        
+
         var book = new Book
         {
             Title = bookDto.Title,
@@ -159,20 +150,18 @@ public class BookService
             IsAvailable = true,
             BookGenres = new List<BookGenre>(),
             CoverImagePath = coverImagePath,
-            CoverImageHash = fileHash,
+            CoverImageHash = fileHash
         };
-        
+
         foreach (var genreId in bookDto.GenreIds)
         {
             var genre = await _context.Genres.FindAsync(genreId);
             if (genre != null)
-            {
                 book.BookGenres.Add(new BookGenre
                 {
                     Book = book,
                     GenreId = genreId
                 });
-            }
         }
 
         _context.Books.Add(book);
@@ -201,10 +190,7 @@ public class BookService
             .Include(b => b.BookGenres)
             .FirstOrDefaultAsync(b => b.Id == id);
 
-        if (book == null)
-        {
-            throw new CustomException("Book not found", StatusCodes.Status404NotFound);
-        }
+        if (book == null) throw new CustomException("Book not found", StatusCodes.Status404NotFound);
 
         book.Title = updateBookDto.Title;
         book.Author = updateBookDto.Author;
@@ -216,13 +202,11 @@ public class BookService
         {
             var genre = await _context.Genres.FindAsync(genreId);
             if (genre != null)
-            {
                 book.BookGenres.Add(new BookGenre
                 {
                     Book = book,
                     GenreId = genreId
                 });
-            }
         }
 
         await _context.SaveChangesAsync();
@@ -234,16 +218,11 @@ public class BookService
     {
         var book = await _context.Books.FirstOrDefaultAsync(b => b.Id == bookId);
 
-        if (book == null)
-        {
-            throw new CustomException("Book not found.", StatusCodes.Status404NotFound);
-        }
+        if (book == null) throw new CustomException("Book not found.", StatusCodes.Status404NotFound);
 
         if (!book.IsAvailable)
-        {
             throw new CustomException("Can't delete this book because it is already taken.",
                 StatusCodes.Status400BadRequest);
-        }
 
         _context.Books.Remove(book);
         await _context.SaveChangesAsync();
@@ -254,22 +233,13 @@ public class BookService
     {
         var book = await _context.Books.FirstOrDefaultAsync(b => b.Id == bookId);
 
-        if (book == null)
-        {
-            throw new CustomException("Book not found.", StatusCodes.Status404NotFound);
-        }
+        if (book == null) throw new CustomException("Book not found.", StatusCodes.Status404NotFound);
 
-        if (!book.IsAvailable)
-        {
-            throw new CustomException("Book is already taken.", StatusCodes.Status400BadRequest);
-        }
+        if (!book.IsAvailable) throw new CustomException("Book is already taken.", StatusCodes.Status400BadRequest);
 
         var user = await _userManager.FindByIdAsync(userId);
 
-        if (user == null)
-        {
-            throw new CustomException("User not found.", StatusCodes.Status404NotFound);
-        }
+        if (user == null) throw new CustomException("User not found.", StatusCodes.Status404NotFound);
 
         book.IsAvailable = false;
         book.TakenByUserId = user.Id;
@@ -280,7 +250,7 @@ public class BookService
             BookId = bookId,
             User = user,
             UserId = user.Id,
-            BorrowDate = DateTime.UtcNow,
+            BorrowDate = DateTime.UtcNow
         });
 
         await _context.SaveChangesAsync();
@@ -291,23 +261,14 @@ public class BookService
     {
         var book = await _context.Books.FirstOrDefaultAsync(b => b.Id == bookId);
 
-        if (book == null)
-        {
-            throw new CustomException("Book not found.", StatusCodes.Status404NotFound);
-        }
+        if (book == null) throw new CustomException("Book not found.", StatusCodes.Status404NotFound);
 
-        if (book.IsAvailable)
-        {
-            throw new CustomException("Book is not taken.", StatusCodes.Status400BadRequest);
-        }
+        if (book.IsAvailable) throw new CustomException("Book is not taken.", StatusCodes.Status400BadRequest);
 
         var bookHistory =
             await _context.BookHistories.FirstOrDefaultAsync(h => h.BookId == bookId && h.UserId == book.TakenByUserId);
 
-        if (bookHistory != null)
-        {
-            bookHistory.ReturnDate = DateTime.UtcNow;
-        }
+        if (bookHistory != null) bookHistory.ReturnDate = DateTime.UtcNow;
 
         book.IsAvailable = true;
         book.TakenByUserId = null;

@@ -19,9 +19,9 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        
+
         modelBuilder.Entity<BookGenre>()
-            .HasKey(bg => new { bg.BookId, bg.GenreId });  
+            .HasKey(bg => new { bg.BookId, bg.GenreId });
 
         modelBuilder.Entity<BookGenre>()
             .HasOne(bg => bg.Book)
@@ -38,13 +38,13 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 
         modelBuilder.Entity<BookHistory>()
             .HasKey(bh => bh.Id);
-        
+
         modelBuilder.Entity<BookHistory>()
             .HasOne(bh => bh.Book)
             .WithMany(b => b.BookHistories)
             .HasForeignKey(bh => bh.BookId)
             .OnDelete(DeleteBehavior.Cascade);
-        
+
         modelBuilder.Entity<BookHistory>()
             .HasOne(bh => bh.User)
             .WithMany(u => u.BookHistories)

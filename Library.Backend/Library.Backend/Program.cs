@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json;
 using Library.Backend.Auth;
 using Library.Backend.Data;
 using Library.Backend.Filters;
@@ -35,15 +36,15 @@ builder.Services.ConfigureApplicationCookie(options =>
         context.Response.StatusCode = 401;
         return Task.CompletedTask;
     };
-    
+
     options.Events.OnRedirectToAccessDenied = context =>
     {
         context.Response.StatusCode = 406;
         return Task.CompletedTask;
     };
-    
-    options.LoginPath = PathString.Empty; 
-    options.AccessDeniedPath = PathString.Empty; 
+
+    options.LoginPath = PathString.Empty;
+    options.AccessDeniedPath = PathString.Empty;
     options.Cookie.HttpOnly = true;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     options.Cookie.SameSite = SameSiteMode.None;
@@ -84,18 +85,16 @@ builder.Services
             OnMessageReceived = context =>
             {
                 var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-                if (!string.IsNullOrEmpty(token))
-                {
-                    context.Token = token;
-                }
+                if (!string.IsNullOrEmpty(token)) context.Token = token;
+
                 return Task.CompletedTask;
             },
             OnForbidden = context =>
             {
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
                 context.Response.ContentType = "application/json";
-                
-                var result = System.Text.Json.JsonSerializer.Serialize(new
+
+                var result = JsonSerializer.Serialize(new
                 {
                     error = "Access denied."
                 });
@@ -105,15 +104,9 @@ builder.Services
         };
     });
 
-builder.Services.AddControllers(options =>
-{
-    options.Filters.Add<ValidationExceptionFilter>();
-});
+builder.Services.AddControllers(options => { options.Filters.Add<ValidationExceptionFilter>(); });
 
-builder.Services.Configure<ApiBehaviorOptions>(options =>
-{
-    options.SuppressModelStateInvalidFilter = true;
-});
+builder.Services.Configure<ApiBehaviorOptions>(options => { options.SuppressModelStateInvalidFilter = true; });
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -122,7 +115,7 @@ builder.Services.AddSwaggerGen(options =>
         options.SwaggerDoc("v1", new OpenApiInfo
             {
                 Version = "v1",
-                Title = "Library API",
+                Title = "Library API"
             }
         );
 

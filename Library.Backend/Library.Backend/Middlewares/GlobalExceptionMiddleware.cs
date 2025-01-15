@@ -22,13 +22,13 @@ public class GlobalExceptionMiddleware
             await HandleExceptionAsync(context, ex);
         }
     }
-    
+
     private static Task HandleExceptionAsync(HttpContext context, CustomException ex)
     {
         var errorResponse = new ApiErrorResponse
         {
             StatusCode = ex.StatusCode,
-            Message = ex.Message,
+            Message = ex.Message
         };
 
         context.Response.ContentType = "application/json";

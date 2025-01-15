@@ -11,9 +11,9 @@ namespace Library.Backend.Services;
 
 public class AuthService
 {
-    private readonly UserManager<ApplicationUser> _userManager;
-    private readonly RoleManager<IdentityRole> _roleManager;
     private readonly IConfiguration _configuration;
+    private readonly RoleManager<IdentityRole> _roleManager;
+    private readonly UserManager<ApplicationUser> _userManager;
 
     public AuthService(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager,
         IConfiguration configuration)
@@ -30,31 +30,23 @@ public class AuthService
             Email = registerUserDto.Email,
             Name = registerUserDto.Name,
             Surname = registerUserDto.Surname,
-            UserName = registerUserDto.Email,
+            UserName = registerUserDto.Email
         };
-        
+
         var result = await _userManager.CreateAsync(user, registerUserDto.Password);
 
-        if (result.Succeeded)
-        {
-            await _userManager.AddToRoleAsync(user, "User");
-        }
-        
+        if (result.Succeeded) await _userManager.AddToRoleAsync(user, "User");
+
         return result;
     }
 
     public async Task<string?> LoginUser(string email, string password)
     {
         var user = await _userManager.FindByEmailAsync(email);
-        if (user == null)
-        {
-            throw new CustomException("User not found.", StatusCodes.Status404NotFound);
-        }
+        if (user == null) throw new CustomException("User not found.", StatusCodes.Status404NotFound);
 
         if (!await _userManager.CheckPasswordAsync(user, password))
-        {
             throw new CustomException("Invalid password.", StatusCodes.Status400BadRequest);
-        }
 
         var token = await GenerateJwtToken(user);
         return token;
@@ -64,16 +56,10 @@ public class AuthService
     {
         var user = await _userManager.FindByIdAsync(userId);
 
-        if (user == null)
-        {
-            throw new CustomException("User not found.", 404);
-        }
+        if (user == null) throw new CustomException("User not found.", 404);
 
         var roleExists = await _roleManager.RoleExistsAsync(roleName);
-        if (!roleExists)
-        {
-            throw new CustomException("Role not found.", StatusCodes.Status404NotFound);
-        }
+        if (!roleExists) throw new CustomException("Role not found.", StatusCodes.Status404NotFound);
 
         var result = await _userManager.AddToRoleAsync(user, roleName);
         return result;
@@ -82,39 +68,30 @@ public class AuthService
     public async Task<IdentityResult> RemoveRole(string userId, string roleName)
     {
         var user = await _userManager.FindByIdAsync(userId);
-        if (user == null)
-        {
-            throw new CustomException("User not found.", StatusCodes.Status404NotFound);
-        }
+        if (user == null) throw new CustomException("User not found.", StatusCodes.Status404NotFound);
         var roleExists = await _roleManager.RoleExistsAsync(roleName);
-        if (!roleExists)
-        {
-            throw new CustomException("Role not found.", StatusCodes.Status404NotFound);
-        }
-        
+        if (!roleExists) throw new CustomException("Role not found.", StatusCodes.Status404NotFound);
+
         var result = await _userManager.RemoveFromRoleAsync(user, roleName);
         return result;
     }
-    
+
 
     private async Task<string> GenerateJwtToken(ApplicationUser user)
     {
         var claims = new List<Claim>
         {
-            new Claim(JwtRegisteredClaimNames.Sub, user.UserName!),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim("Id", user.Id),
+            new(JwtRegisteredClaimNames.Sub, user.UserName!),
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new("Id", user.Id)
         };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:SecretKey"]!));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-        
+
         var roles = await _userManager.GetRolesAsync(user);
 
-        foreach (var role in roles)
-        {
-            claims.Add(new Claim(ClaimTypes.Role, role));
-        }
+        foreach (var role in roles) claims.Add(new Claim(ClaimTypes.Role, role));
 
         var token = new JwtSecurityToken(
             _configuration["Jwt:Issuer"],

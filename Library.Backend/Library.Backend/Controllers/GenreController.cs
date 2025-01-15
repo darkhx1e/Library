@@ -1,5 +1,4 @@
 ﻿using Library.Backend.DTOs.Genre;
-using Library.Backend.Models;
 using Library.Backend.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

@@ -20,7 +20,7 @@ public class ValidationExceptionFilter : IActionFilter
             var response = new ApiErrorResponse
             {
                 StatusCode = 400,
-                Message = message,
+                Message = message
             };
 
             context.Result = new JsonResult(response)
@@ -29,7 +29,8 @@ public class ValidationExceptionFilter : IActionFilter
             };
         }
     }
-    
+
     public void OnActionExecuted(ActionExecutedContext context)
-    {}
+    {
+    }
 }
